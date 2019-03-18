@@ -24,3 +24,28 @@ fn julia<T>(pos: Vec3<T>, c: Quaternion<T>, i32 iterations) -> T {
     let mag_q = q.magnitude();
     mag_q * mag_q.ln() / (2 * qp.magnitude())
 }
+
+struct Estimator<T> {
+    max_steps: i32,
+    min_dist: T,
+    max_dist: T,
+    de: DistanceEstimator<T>,
+}
+
+impl Estimator<T> {
+    fn estimate<T>(&self, pos: Vec3<T>, rot: Vec3<T>) -> Option<Vec3<T>> {
+        let mut total_dist: T = 0;
+        for i in 0..self.max_steps {
+            let measure_pos = pos + rot * total_dist;
+            let dist = de(measure_pos);
+            total_dist += dist;
+
+            if dist <= self.min_dist {
+                Some(measure_pos)
+            } else if total_dist >= self.max_dist || total_dist.is_infinite() {
+                None()
+            }
+        }
+    }
+}
+
