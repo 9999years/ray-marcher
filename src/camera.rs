@@ -1,19 +1,25 @@
+use std::ops::{Range, Div};
+
 extern crate vek;
-use vek::vec::{Vec2, Vec3};
+use self::vek::{Vec2, Vec3};
+
+extern crate num;
+use self::num::{Float, Num};
+use std::iter::Sum;
 
 /// if `val` is in `domain`, put it in a proportional spot in `codomain`
-fn scale<T>(val: T, domain: Range<T>, codomain: Range<T>) -> T {
+fn scale<T: Num>(val: T, domain: Range<T>, codomain: Range<T>) -> T {
     let scale = (val - domain.start) / (domain.end - domain.start);
     scale * (codomain.end - codomain.start) + codomain.start
 }
 
-struct Camera<T> {
+pub struct Camera<T> {
     rot: Vec3<T>,
     pos: Vec3<T>,
     focal_len: T,
 }
 
-struct Viewport<T> {
+pub struct Viewport<T> {
     width: T,
     height: T,
     /// a right-angle with the camera to define orientation; normalized
@@ -22,27 +28,29 @@ struct Viewport<T> {
     camera: Camera<T>,
 }
 
-impl Viewport<T> {
-    fn aspect(&self) -> T {
+impl <T: Num> Viewport<T> {
+    fn aspect(&self) -> T
+        where T: Div {
         self.width / self.height
     }
 
     /// location.x and .y are fractions from 0 to 1 of how far left/bottom in the viewport the
     /// ray should originate at
     /// Returns: position, orientation of the ray
-    fn ray(&self, location: Vec2<T>) -> (Vec3<T>, Vec3<T>) {
+    fn ray(&self, location: Vec2<T>) -> (Vec3<T>, Vec3<T>)
+        where T: Float + Sum {
         // w and h scaled to -0.5, 0.5
-        let width  = location.x - 0.5;
-        let height = location.y - 0.5;
+        let width  = location.x - T::from(0.5).unwrap();
+        let height = location.y - T::from(0.5).unwrap();
 
         // vectors pointing from the center of the viewport to the width coord and height
         // coord on the viewport
         let ray_on_viewport =
-              width  * self.width  * self.right
-            + height * self.height * self.right.cross(self.camera.rot);
+            self.right * (width * self.width)
+            + self.right.cross(self.camera.rot) * (height * self.height);
 
         // vector from the center of the viewport to the origin of the rays
-        let camera = self.camera.rot * -self.camera.focal_length;
+        let camera = self.camera.rot * -self.camera.focal_len;
 
 
         // ray orientation; normalized version of vector from origin of rays to viewport

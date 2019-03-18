@@ -1,12 +1,11 @@
-extern crate vek::{vec};
-use vek::vec::{Vec2, Vec3, Vec4};
+extern crate vek;
+use self::vek::{Vec3};
 
-use distance::{DistanceEstimator};
-use camera::{Camera};
+use super::camera::{Camera};
 
-struct BlinnPhong<T> {
+struct BlinnPhong<T, C> {
     camera: Camera<T>,
-    lights: Vec<Light<T>>,
+    lights: Vec<Light<T, C>>,
 }
 
 struct MaterialProperties<T> {
