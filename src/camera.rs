@@ -8,7 +8,8 @@ use self::num::{Float, Num};
 use std::iter::Sum;
 
 /// if `val` is in `domain`, put it in a proportional spot in `codomain`
-fn scale<T: Num>(val: T, domain: Range<T>, codomain: Range<T>) -> T {
+fn scale<T>(val: T, domain: Range<T>, codomain: Range<T>) -> T
+    where T: Num + Copy {
     let scale = (val - domain.start) / (domain.end - domain.start);
     scale * (codomain.end - codomain.start) + codomain.start
 }
@@ -28,7 +29,7 @@ pub struct Viewport<T> {
     camera: Camera<T>,
 }
 
-impl <T: Num> Viewport<T> {
+impl <T: Num + Copy> Viewport<T> {
     fn aspect(&self) -> T
         where T: Div {
         self.width / self.height
