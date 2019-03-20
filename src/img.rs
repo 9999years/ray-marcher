@@ -1,3 +1,6 @@
+extern crate palette;
+use self::palette::Pixel;
+
 struct ImageData {
     width: usize,
     height: usize,
@@ -13,8 +16,10 @@ impl ImageData {
         }
     }
 
-    fn set(&self, x: usize, y: usize, val: &[u8]) {
+    fn set<C>(&mut self, x: usize, y: usize, color: C)
+        where C: Pixel<u8> {
         let idx = y * self.width + x;
+        let val = Pixel::into_raw_slice(&[color]);
         &self.data[idx..idx + val.len()].copy_from_slice(val);
     }
 }

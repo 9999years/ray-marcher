@@ -4,8 +4,9 @@ version = "0.0.1"
 authors = ["Rebecca Turner <637275@gmail.com>"]
 
 [dependencies]
-num = "~0.2.0"
-vek = "~0.9.7"
-clap = "~2.32.0"
-png = "~0.14.0"
-chrono = "~0.4.6"
+num     = "~0.2.0"
+vek     = "~0.9.7"
+clap    = "~2.32.0"
+png     = "~0.14.0"
+chrono  = "~0.4.6"
+palette = "~0.4.1"

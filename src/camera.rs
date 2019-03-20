@@ -15,9 +15,9 @@ fn scale<T>(val: T, domain: Range<T>, codomain: Range<T>) -> T
 }
 
 pub struct Camera<T> {
-    rot: Vec3<T>,
-    pos: Vec3<T>,
-    focal_len: T,
+    pub rot: Vec3<T>,
+    pub pos: Vec3<T>,
+    pub focal_len: T,
 }
 
 pub struct Viewport<T> {

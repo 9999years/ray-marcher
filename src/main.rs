@@ -3,6 +3,8 @@ use std::str::FromStr;
 
 mod camera;
 mod distance;
+mod img;
+mod light;
 
 extern crate clap;
 use clap::{Arg, App};
