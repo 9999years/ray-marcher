@@ -1,14 +1,13 @@
-use std::ops::{Mul};
 use std::iter::Sum;
 
 extern crate vek;
 use self::vek::{Vec3};
 
 extern crate num;
-use self::num::{Zero, Float};
+use self::num::{Float};
 
 extern crate palette;
-use self::palette::{Color, Mix};
+use self::palette::{Mix};
 
 use super::camera::{Camera};
 
@@ -33,12 +32,12 @@ struct Light<T, C> {
      intensity: MaterialProperties<T>,
 }
 
-impl <T: Float, C: Default + Mix> BlinnPhong<T, C> {
-    pub fn lighting(&self, pos: Vec3<T>, normal: Vec3<T>) -> C
+impl <T: Float, C: Default + Mix<Scalar = T>> BlinnPhong<T, C> {
+    pub fn lighting(&self, normal: Vec3<T>) -> C
         where T: Sum {
         let cam = self.camera.rot;
         let mut color = C::default();
-        for light in self.lights {
+        for light in &self.lights {
             let halfway = (cam + light.rot).normalized();
             color = color.mix(
                 &light.color,

@@ -19,7 +19,8 @@ impl ImageData {
     fn set<C>(&mut self, x: usize, y: usize, color: C)
         where C: Pixel<u8> {
         let idx = y * self.width + x;
-        let val = Pixel::into_raw_slice(&[color]);
+        let color_slice = &[color];
+        let val = Pixel::into_raw_slice(color_slice);
         &self.data[idx..idx + val.len()].copy_from_slice(val);
     }
 }
