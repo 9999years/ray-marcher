@@ -16,7 +16,7 @@ struct BlinnPhong<T, C> {
     lights: Vec<Light<T, C>>,
 }
 
-struct MaterialProperties<T> {
+struct Material<T> {
     specular: T,
     diffuse: T,
     ambient: T,
@@ -24,12 +24,14 @@ struct MaterialProperties<T> {
 
 /// C being the color type
 struct Light<T, C> {
+    // L
     rot: Vec3<T>,
-    color: C,
 
-    shininess: T,
-    constants: MaterialProperties<T>,
-    intensity: MaterialProperties<T>,
+    // α
+    shininess: C,
+    // i_s, i_d, i_a
+    intensity: Material<C>,
+    // k_s, k_d, k_a in a material
 }
 
 impl<T, C> BlinnPhong<T, C>
@@ -37,7 +39,7 @@ where
     T: Float,
     C: Default + Mix<Scalar = T>,
 {
-    pub fn lighting(&self, normal: Vec3<T>) -> C
+    pub fn lighting(&self, normal: Vec3<T>, mat: Material<T>) -> C
     where
         T: Sum,
     {
