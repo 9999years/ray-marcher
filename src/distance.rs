@@ -1,10 +1,10 @@
-use std::iter::{Sum};
+use std::iter::Sum;
 
 extern crate vek;
-use self::vek::{Vec3, Vec4, Quaternion};
+use self::vek::{Quaternion, Vec3, Vec4};
 
 extern crate num;
-use self::num::{Float};
+use self::num::Float;
 
 pub type DistanceEstimator<T> = Fn(Vec3<T>) -> T;
 
@@ -38,7 +38,7 @@ struct Estimator<T> {
     de: DistanceEstimator<T>,
 }
 
-impl <T: Float> Estimator<T> {
+impl<T: Float> Estimator<T> {
     fn estimate(&self, pos: Vec3<T>, rot: Vec3<T>) -> Option<Vec3<T>> {
         let mut total_dist = T::from(0).unwrap();
         for _ in 0..self.max_steps {
@@ -47,16 +47,18 @@ impl <T: Float> Estimator<T> {
             total_dist = total_dist + dist;
 
             if dist <= self.min_dist {
-                return Some(measure_pos)
+                return Some(measure_pos);
             } else if total_dist >= self.max_dist || total_dist.is_infinite() {
-                return None
+                return None;
             }
         }
         None
     }
 
     fn normal(&self, pos: Vec3<T>) -> Vec3<T>
-        where T: Float + Sum {
+    where
+        T: Float + Sum,
+    {
         let zero = T::zero();
         let x = Vec3::new(self.sample_size, zero, zero);
         let y = Vec3::new(zero, self.sample_size, zero);
@@ -64,9 +66,8 @@ impl <T: Float> Estimator<T> {
         Vec3::new(
             (self.de)(pos + x) - (self.de)(pos - x),
             (self.de)(pos + y) - (self.de)(pos - y),
-            (self.de)(pos + z) - (self.de)(pos - z)
-        ).normalized()
+            (self.de)(pos + z) - (self.de)(pos - z),
+        )
+        .normalized()
     }
-
 }
-

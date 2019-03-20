@@ -1,4 +1,4 @@
-use std::ops::{Range, Div};
+use std::ops::{Div, Range};
 
 extern crate vek;
 use self::vek::{Vec2, Vec3};
@@ -9,7 +9,9 @@ use std::iter::Sum;
 
 /// if `val` is in `domain`, put it in a proportional spot in `codomain`
 fn scale<T>(val: T, domain: Range<T>, codomain: Range<T>) -> T
-    where T: Num + Copy {
+where
+    T: Num + Copy,
+{
     let scale = (val - domain.start) / (domain.end - domain.start);
     scale * (codomain.end - codomain.start) + codomain.start
 }
@@ -29,9 +31,11 @@ pub struct Viewport<T> {
     camera: Camera<T>,
 }
 
-impl <T: Num + Copy> Viewport<T> {
+impl<T: Num + Copy> Viewport<T> {
     fn aspect(&self) -> T
-        where T: Div {
+    where
+        T: Div,
+    {
         self.width / self.height
     }
 
@@ -39,20 +43,20 @@ impl <T: Num + Copy> Viewport<T> {
     /// ray should originate at
     /// Returns: position, orientation of the ray
     fn ray(&self, location: Vec2<T>) -> (Vec3<T>, Vec3<T>)
-        where T: Float + Sum {
+    where
+        T: Float + Sum,
+    {
         // w and h scaled to -0.5, 0.5
-        let width  = location.x - T::from(0.5).unwrap();
+        let width = location.x - T::from(0.5).unwrap();
         let height = location.y - T::from(0.5).unwrap();
 
         // vectors pointing from the center of the viewport to the width coord and height
         // coord on the viewport
-        let ray_on_viewport =
-            self.right * (width * self.width)
+        let ray_on_viewport = self.right * (width * self.width)
             + self.right.cross(self.camera.rot) * (height * self.height);
 
         // vector from the center of the viewport to the origin of the rays
         let camera = self.camera.rot * -self.camera.focal_len;
-
 
         // ray orientation; normalized version of vector from origin of rays to viewport
         // coords

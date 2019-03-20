@@ -7,11 +7,11 @@ mod img;
 mod light;
 
 extern crate clap;
-use clap::{Arg, App};
+use clap::{App, Arg};
 
 extern crate chrono;
+use chrono::format::{strftime::StrftimeItems, Item};
 use chrono::prelude::*;
-use chrono::format::{Item, strftime::StrftimeItems};
 
 type ClapResult = Result<(), String>;
 
@@ -20,10 +20,10 @@ fn to_clap<T>(r: Result<T, String>) -> ClapResult {
 }
 
 fn validate<T>(s: String, msg: &ToString) -> ClapResult
-    where T: FromStr {
-    s.parse::<T>()
-        .map(|_| ())
-        .map_err(|_| msg.to_string())
+where
+    T: FromStr,
+{
+    s.parse::<T>().map(|_| ()).map_err(|_| msg.to_string())
 }
 
 fn validate_int(s: String) -> ClapResult {
@@ -41,8 +41,7 @@ fn validate_int_positive(s: String) -> ClapResult {
 }
 
 fn validate_int_range(r: Range<i32>) -> Box<Fn(String) -> ClapResult> {
-    let msg = format!("Must be a valid integer between {} and {}",
-                      r.start, r.end);
+    let msg = format!("Must be a valid integer between {} and {}", r.start, r.end);
     Box::new(move |s| {
         s.parse::<i32>()
             .map_err(|_| msg.to_string())
@@ -58,12 +57,11 @@ fn validate_float(s: String) -> ClapResult {
 }
 
 fn validate_strftime(s: String) -> ClapResult {
-    if StrftimeItems::new(&s)
-        .any(|item| match item {
-            Item::Error => true,
-            _ => false,
-        }) {
-            Err("Must be a valid format string; see chrono::format::strftime docs".to_string())
+    if StrftimeItems::new(&s).any(|item| match item {
+        Item::Error => true,
+        _ => false,
+    }) {
+        Err("Must be a valid format string; see chrono::format::strftime docs".to_string())
     } else {
         Ok(())
     }
