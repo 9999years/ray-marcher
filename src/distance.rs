@@ -8,28 +8,7 @@ use self::num::Float;
 
 pub type DistanceEstimator<T> = Fn(Vec3<T>) -> T;
 
-fn julia<T: Float + Sum>(pos: Vec3<T>, c: Quaternion<T>, iterations: i32) -> T {
-    // keep one component fixed to view a 3d "slice" of the 4d fractal
-    let mut q = Quaternion::from(Vec4::from(pos));
-    // q', running derviative of q
-    let mut qp: Quaternion<T> = Quaternion::from(Vec4::right());
-
-    for _ in 0..iterations {
-        qp = (q * qp) * T::from(2).unwrap();
-        q = q * q + c;
-        if q.magnitude_squared() > T::from(16).unwrap() {
-            break;
-        }
-    }
-
-    //            |q| log |q|
-    // distance = ───────────
-    //               2 |q′|
-    let mag_q = q.magnitude();
-    mag_q * mag_q.ln() / (T::from(2).unwrap() * qp.magnitude())
-}
-
-struct Estimator<T> {
+pub struct Estimator<T> {
     max_steps: i32,
     min_dist: T,
     max_dist: T,
@@ -70,4 +49,25 @@ impl<T: Float> Estimator<T> {
         )
         .normalized()
     }
+}
+
+fn julia<T: Float + Sum>(pos: Vec3<T>, c: Quaternion<T>, iterations: i32) -> T {
+    // keep one component fixed to view a 3d "slice" of the 4d fractal
+    let mut q = Quaternion::from(Vec4::from(pos));
+    // q', running derviative of q
+    let mut qp: Quaternion<T> = Quaternion::from(Vec4::right());
+
+    for _ in 0..iterations {
+        qp = (q * qp) * T::from(2).unwrap();
+        q = q * q + c;
+        if q.magnitude_squared() > T::from(16).unwrap() {
+            break;
+        }
+    }
+
+    //            |q| log |q|
+    // distance = ───────────
+    //               2 |q′|
+    let mag_q = q.magnitude();
+    mag_q * mag_q.ln() / (T::from(2).unwrap() * qp.magnitude())
 }
