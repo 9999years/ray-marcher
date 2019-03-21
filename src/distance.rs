@@ -1,10 +1,7 @@
 use std::iter::Sum;
 
-extern crate vek;
-use self::vek::{Quaternion, Vec3, Vec4};
-
-extern crate num;
-use self::num::Float;
+use vek::{Quaternion, Vec3, Vec4};
+use num::Float;
 
 pub type DistanceEstimator<T> = Fn(Vec3<T>) -> T;
 

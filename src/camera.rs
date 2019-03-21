@@ -1,11 +1,8 @@
 use std::ops::{Div, Range};
-
-extern crate vek;
-use self::vek::{Vec2, Vec3};
-
-extern crate num;
-use self::num::{Float, Num};
 use std::iter::Sum;
+
+use vek::{Vec2, Vec3};
+use num::{Float, Num};
 
 /// if `val` is in `domain`, put it in a proportional spot in `codomain`
 fn scale<T>(val: T, domain: Range<T>, codomain: Range<T>) -> T

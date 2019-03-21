@@ -1,17 +1,15 @@
 use std::ops::Range;
 use std::str::FromStr;
 
+use clap::{App, Arg};
+
+use chrono::format::{strftime::StrftimeItems, Item};
+use chrono::prelude::*;
+
 mod camera;
 mod distance;
 mod img;
 mod light;
-
-extern crate clap;
-use clap::{App, Arg};
-
-extern crate chrono;
-use chrono::format::{strftime::StrftimeItems, Item};
-use chrono::prelude::*;
 
 type ClapResult = Result<(), String>;
 
