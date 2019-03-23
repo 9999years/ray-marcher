@@ -10,6 +10,7 @@ mod camera;
 mod distance;
 mod img;
 mod light;
+mod render;
 
 type ClapResult = Result<(), String>;
 

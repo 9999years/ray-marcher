@@ -2,11 +2,11 @@ use std::iter::Sum;
 
 use vek::Vec3;
 use num::Float;
-use palette::{Blend, Alpha};
+use palette::Blend;
 
 use crate::camera::Camera;
 
-struct BlinnPhong<T, C> {
+pub struct BlinnPhong<T, C> {
     camera: Camera<T>,
     lights: Vec<Light<T, C>>,
 }
@@ -33,7 +33,7 @@ struct Light<T, C> {
 impl<T, C> BlinnPhong<T, C>
 where
     T: Float,
-    C: Default + Blend<Scalar = T>,
+    C: Default + Blend,
 {
     /// lighting for a given normal and material
     /// Possible optimization: a cache
