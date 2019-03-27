@@ -1,4 +1,4 @@
-use palette::{Pixel, Srgba};
+use palette::{Pixel, Srgba, Component};
 
 // 8-bit rgba image data
 struct ImageData {
@@ -50,12 +50,20 @@ impl ImageData {
         (0..self.data.len()).step_by(Self::CHANNELS)
     }
 
+    fn coords(&self) -> impl Iterator<Item = (usize, usize)> {
+        (0..self.width).cycle().zip(0..self.height)
+    }
+
+    fn indexes_coords(&self) -> impl Iterator<Item = (usize, (usize, usize))> {
+        self.indexes().zip(self.coords())
+    }
+
     fn render_fn<F, C>(&mut self, func: F)
     where
         F: Fn(usize, usize) -> Srgba<C>,
+        C: Component,
     {
-        for inx in self.indexes() {
-            let (x, y) = self.inx_to_coords(inx);
+        for (inx, (x, y)) in self.indexes_coords() {
             self.set_inx(inx, func(x, y));
         }
     }

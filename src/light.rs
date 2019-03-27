@@ -1,8 +1,9 @@
 use std::iter::Sum;
+use std::ops::Mul;
 
 use vek::Vec3;
 use num::Float;
-use palette::Blend;
+use palette::{Blend, ComponentWise};
 
 use crate::camera::Camera;
 
@@ -26,14 +27,15 @@ struct Light<T, C> {
     rot: Vec3<T>,
 
     // i_s, i_d, i_a
-    intensity: Material<C>,
+    // col(or)
+    col: Material<C>,
     // k_s, k_d, k_a in a material
 }
 
 impl<T, C> BlinnPhong<T, C>
 where
-    T: Float,
-    C: Default + Blend,
+    T: Float + Sum,
+    C: Default + Blend<Color = C> + ComponentWise<Scalar = T> + Mul<T, Output = C>,
 {
     /// lighting for a given normal and material
     /// Possible optimization: a cache
@@ -56,20 +58,18 @@ where
     ///     I_p = ∑_lights (k_a i_a
     ///                   + k_d i_d (L ⋅ N)
     ///                   + k_s i_s (N ⋅ H)^α)
-    pub fn lighting(&self, normal: Vec3<T>, mat: Material<T>) -> C
-    where
-        T: Sum,
-    {
+    pub fn lighting(&self, normal: Vec3<T>, mat: Material<T>) -> C {
         let mut color = C::default();
+        let dark = C::default();
         for light in &self.lights {
             let halfway = (self.camera.rot + light.rot).normalized();
             // add the new light to the total light so far
             // note: light.ambient, light.diffuse, and light.specular
             // can be completely different colors
-            color = color.screen(light.ambient * mat.ambient)
-                .screen(light.diffuse * mat.diffuse * light.rot.dot(normal))
-                .screen(light.specular * mat.specular
-                        * normal.dot(halfway).powf(light.shininess));
+            color = color.plus(light.col.ambient * mat.ambient)
+                .plus(light.col.diffuse * mat.diffuse * light.rot.dot(normal))
+                .plus(light.col.specular * mat.specular
+                        * normal.dot(halfway).powf(mat.shininess));
         }
         color
     }
