@@ -1,4 +1,4 @@
-use palette::{Pixel, Srgba, Component};
+use palette::{Component, Pixel, Srgba};
 
 // 8-bit rgba image data
 struct ImageData {
@@ -38,7 +38,7 @@ impl ImageData {
 
     fn set_inx<C>(&mut self, inx: usize, color: C)
     where
-        C: Pixel<u8>
+        C: Pixel<u8>,
     {
         let color_slice = &[color];
         let val = Pixel::into_raw_slice(color_slice);

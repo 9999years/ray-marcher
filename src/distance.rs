@@ -1,7 +1,7 @@
 use std::iter::Sum;
 
-use vek::{Quaternion, Vec3, Vec4};
 use num::Float;
+use vek::{Quaternion, Vec3, Vec4};
 
 pub type DistanceEstimator<T> = Fn(Vec3<T>) -> T;
 

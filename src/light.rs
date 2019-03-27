@@ -1,9 +1,9 @@
 use std::iter::Sum;
 use std::ops::Mul;
 
-use vek::Vec3;
 use num::Float;
-use palette::{Blend, Component, ComponentWise, Alpha};
+use palette::{Alpha, Blend, Component, ComponentWise};
+use vek::Vec3;
 
 use crate::camera::Camera;
 
@@ -65,10 +65,10 @@ where
             // add the new light to the total light so far
             // note: light.ambient, light.diffuse, and light.specular
             // can be completely different colors
-            color = color.plus(light.col.ambient * mat.ambient)
+            color = color
+                .plus(light.col.ambient * mat.ambient)
                 .plus(light.col.diffuse * mat.diffuse * light.rot.dot(normal))
-                .plus(light.col.specular * mat.specular
-                        * normal.dot(halfway).powf(mat.shininess));
+                .plus(light.col.specular * mat.specular * normal.dot(halfway).powf(mat.shininess));
         }
         color
     }

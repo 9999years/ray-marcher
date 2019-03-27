@@ -1,0 +1,22 @@
+---
+geometry:
+    - type: julia
+      c: -0.213 -0.0410 -0.563 -0.560
+      iterations: 64
+      material: plain
+materials:
+    - name: plain
+      specular: 1.0
+      diffuse: 0.5
+      ambient: 0.01
+      shininess: 4.0
+lights:
+    - rot: 0 0 0
+      specular: color
+      diffuse: color
+      ambient: color
+camera:
+    - rot: 0 0 0
+      loc: 0 0 0
+      aspect: 1.0
+      focal_length: 10
