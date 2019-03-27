@@ -64,7 +64,7 @@ impl ImageData {
         C: Component,
     {
         for (inx, (x, y)) in self.indexes_coords() {
-            self.set_inx(inx, func(x, y));
+            self.set_inx(inx, func(x, y).into_format());
         }
     }
 }

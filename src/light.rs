@@ -3,7 +3,7 @@ use std::ops::Mul;
 
 use vek::Vec3;
 use num::Float;
-use palette::{Blend, ComponentWise};
+use palette::{Blend, Component, ComponentWise, Alpha};
 
 use crate::camera::Camera;
 
@@ -12,7 +12,7 @@ pub struct BlinnPhong<T, C> {
     lights: Vec<Light<T, C>>,
 }
 
-struct Material<T> {
+pub struct Material<T> {
     specular: T,
     diffuse: T,
     ambient: T,
@@ -22,7 +22,7 @@ struct Material<T> {
 }
 
 /// C being the color type
-struct Light<T, C> {
+pub struct Light<T, C> {
     // L
     rot: Vec3<T>,
 
@@ -32,10 +32,10 @@ struct Light<T, C> {
     // k_s, k_d, k_a in a material
 }
 
-impl<T, C> BlinnPhong<T, C>
+impl<T, C> BlinnPhong<T, Alpha<C, T>>
 where
-    T: Float + Sum,
-    C: Default + Blend<Color = C> + ComponentWise<Scalar = T> + Mul<T, Output = C>,
+    T: Float + Sum + Component,
+    C: Default + Copy + Blend<Color = C> + ComponentWise<Scalar = T> + Mul<T, Output = C>,
 {
     /// lighting for a given normal and material
     /// Possible optimization: a cache
@@ -58,9 +58,8 @@ where
     ///     I_p = ∑_lights (k_a i_a
     ///                   + k_d i_d (L ⋅ N)
     ///                   + k_s i_s (N ⋅ H)^α)
-    pub fn lighting(&self, normal: Vec3<T>, mat: Material<T>) -> C {
-        let mut color = C::default();
-        let dark = C::default();
+    pub fn lighting(&self, normal: Vec3<T>, mat: Material<T>) -> Alpha<C, T> {
+        let mut color: Alpha<C, T> = Alpha::default();
         for light in &self.lights {
             let halfway = (self.camera.rot + light.rot).normalized();
             // add the new light to the total light so far
