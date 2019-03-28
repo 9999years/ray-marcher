@@ -11,12 +11,18 @@ materials:
       ambient: 0.01
       shininess: 4.0
 lights:
-    - rot: 0 0 0
-      specular: color
-      diffuse: color
-      ambient: color
-camera:
-    - rot: 0 0 0
-      loc: 0 0 0
-      aspect: 1.0
-      focal_length: 10
+    - facing: 0 0 0
+      specular: 255 255 255 1
+      diffuse: 255 255 255 1
+      ambient: 255 255 255 1
+cameras:
+    - name: main
+      facing: 0 0 0
+      up: 0 1 0
+      pos: 0 0 0
+      focal_len: 10
+      width: 3
+      height: 2
+renders:
+    - camera: main
+      width: 500

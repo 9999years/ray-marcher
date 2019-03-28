@@ -1,14 +1,17 @@
 use std::iter::Sum;
+use std::ops::Range;
 
 use num::Float;
-use vek::{Quaternion, Vec3, Vec4};
+use vek::{Quaternion, Vec3, Vec4, Clamp};
 
 pub type DistanceEstimator<T> = Fn(Vec3<T>) -> T;
 
 pub struct Estimator<T> {
     max_steps: i32,
-    min_dist: T,
-    max_dist: T,
+    /// values smaller than ε are considered part of the geometry
+    epsilon: T,
+    /// rays which exceed this distance are assumed to be lost
+    cutoff: T,
     // sample size for estimating normals
     sample_size: T,
     de: DistanceEstimator<T>,
@@ -22,9 +25,9 @@ impl<T: Float> Estimator<T> {
             let dist = (self.de)(measure_pos);
             total_dist = total_dist + dist;
 
-            if dist <= self.min_dist {
+            if dist <= self.epsilon {
                 return Some(measure_pos);
-            } else if total_dist >= self.max_dist || total_dist.is_infinite() {
+            } else if total_dist >= self.cutoff || total_dist.is_infinite() {
                 return None;
             }
         }
@@ -48,23 +51,25 @@ impl<T: Float> Estimator<T> {
     }
 }
 
-fn julia<T: Float + Sum>(pos: Vec3<T>, c: Quaternion<T>, iterations: i32) -> T {
-    // keep one component fixed to view a 3d "slice" of the 4d fractal
-    let mut q = Quaternion::from(Vec4::from(pos));
-    // q', running derviative of q
-    let mut qp: Quaternion<T> = Quaternion::from(Vec4::right());
+fn julia<'a, T: Float + Sum>(c: Quaternion<T>, iterations: i32) -> &'a DistanceEstimator<T> {
+    |pos| {
+        // keep one component fixed to view a 3d "slice" of the 4d fractal
+        let mut q = Quaternion::from(Vec4::from(pos));
+        // q', running derviative of q
+        let mut qp: Quaternion<T> = Quaternion::from(Vec4::right());
 
-    for _ in 0..iterations {
-        qp = (q * qp) * T::from(2).unwrap();
-        q = q * q + c;
-        if q.magnitude_squared() > T::from(16).unwrap() {
-            break;
+        for _ in 0..iterations {
+            qp = (q * qp) * T::from(2).unwrap();
+            q = q * q + c;
+            if q.magnitude_squared() > T::from(16).unwrap() {
+                break;
+            }
         }
-    }
 
-    //            |q| log |q|
-    // distance = ───────────
-    //               2 |q′|
-    let mag_q = q.magnitude();
-    mag_q * mag_q.ln() / (T::from(2).unwrap() * qp.magnitude())
+        //            |q| log |q|
+        // distance = ───────────
+        //               2 |q′|
+        let mag_q = q.magnitude();
+        mag_q * mag_q.ln() / (T::from(2).unwrap() * qp.magnitude())
+    }
 }

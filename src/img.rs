@@ -1,9 +1,9 @@
 use palette::{Component, Pixel, Srgba};
+use vek::Extent2;
 
 // 8-bit rgba image data
 struct ImageData {
-    width: usize,
-    height: usize,
+    size: Extent2<usize>,
     data: Vec<u8>,
 }
 
@@ -13,19 +13,18 @@ impl ImageData {
 
     fn new(width: usize, height: usize) -> Self {
         ImageData {
-            width,
-            height,
+            size: Extent2::new(width, height),
             data: Vec::with_capacity(width * height * Self::CHANNELS),
         }
     }
 
     fn coords_to_inx(&self, x: usize, y: usize) -> usize {
-        y * self.width + x
+        y * self.size.w + x
     }
 
     fn inx_to_coords(&self, inx: usize) -> (usize, usize) {
-        let y = inx / self.width;
-        let x = inx % self.width;
+        let y = inx / self.size.w;
+        let x = inx % self.size.w;
         (x, y)
     }
 
@@ -51,7 +50,7 @@ impl ImageData {
     }
 
     fn coords(&self) -> impl Iterator<Item = (usize, usize)> {
-        (0..self.width).cycle().zip(0..self.height)
+        (0..self.size.w).cycle().zip(0..self.size.h)
     }
 
     fn indexes_coords(&self) -> impl Iterator<Item = (usize, (usize, usize))> {

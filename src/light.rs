@@ -1,33 +1,45 @@
 use std::iter::Sum;
 use std::ops::Mul;
 
+use serde::{Serialize, Deserialize};
 use num::Float;
 use palette::{Alpha, Blend, Component, ComponentWise};
 use vek::Vec3;
 
 use crate::camera::Camera;
 
-pub struct BlinnPhong<T, C> {
+pub struct BlinnPhong<T, C>
+where
+    C: Default
+{
     camera: Camera<T>,
     lights: Vec<Light<T, C>>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Material<T> {
     specular: T,
     diffuse: T,
     ambient: T,
 
     // α
+    #[serde(default)]
     shininess: T,
 }
 
 /// C being the color type
-pub struct Light<T, C> {
+#[derive(Serialize, Deserialize)]
+pub struct Light<T, C>
+where
+    C: Default,
+{
     // L
+    #[serde(alias = "facing")]
     rot: Vec3<T>,
 
     // i_s, i_d, i_a
     // col(or)
+    #[serde(flatten)]
     col: Material<C>,
     // k_s, k_d, k_a in a material
 }
