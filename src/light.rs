@@ -10,14 +10,15 @@ use crate::camera::Camera;
 
 pub struct BlinnPhong<T, C>
 where
-    C: Default
+    T: Default,
+    C: Default,
 {
     camera: Camera<T>,
     lights: Vec<Light<T, C>>,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Material<T> {
+#[derive(Serialize, Deserialize, Default)]
+pub struct Material<T: Default> {
     specular: T,
     diffuse: T,
     ambient: T,
@@ -28,9 +29,10 @@ pub struct Material<T> {
 }
 
 /// C being the color type
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct Light<T, C>
 where
+    T: Default,
     C: Default,
 {
     // L

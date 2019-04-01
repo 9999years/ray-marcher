@@ -4,8 +4,10 @@ geometry:
       c: -0.213 -0.0410 -0.563 -0.560
       iterations: 64
       material: plain
+      epsilon: 0.001
+      cutoff: 100
 materials:
-    - name: plain
+    plain:
       specular: 1.0
       diffuse: 0.5
       ambient: 0.01

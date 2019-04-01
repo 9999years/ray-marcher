@@ -11,5 +11,11 @@ clap = "~2.32.0"
 png = "~0.14.0"
 chrono = "~0.4.6"
 palette = "~0.4.1"
+yaml-rust = "~0.4"
 serde_yaml = "~0.8.8"
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "~1.0.89", features = ["derive"] }
+
+# #[cfg(test)]
+# use pretty_assertions::{assert_eq, assert_ne};
+[dev-dependencies]
+pretty_assertions = "~0.6.1"

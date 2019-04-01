@@ -14,8 +14,8 @@ where
     T::lerp_unclamped(codomain.start, codomain.end, scale)
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Viewport<T> {
+#[derive(Serialize, Deserialize, Default)]
+pub struct Viewport<T: Default> {
     /// position and facing of the center of the viewport
     cam: Ray<T>,
     right: Vec3<T>,
@@ -25,13 +25,16 @@ pub struct Viewport<T> {
     pub focal_len: T,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Render<T> {
+#[derive(Serialize, Deserialize, Default)]
+pub struct Render<'a, T: Default> {
     width: usize,
-    pub view: Viewport<T>,
+    pub view: &'a Viewport<T>,
 }
 
-impl<T: Num + Copy> Viewport<T> {
+impl<'a, T> Viewport<'a, T>
+where
+    T: Default,
+{
     pub fn up(&self) -> Vec3<T>
     where
         T: Num + Copy,

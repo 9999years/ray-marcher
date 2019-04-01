@@ -6,11 +6,12 @@ use clap::{App, Arg};
 use chrono::format::{strftime::StrftimeItems, Item};
 use chrono::prelude::*;
 
-mod camera;
-mod distance;
-mod img;
-mod light;
-mod render;
+//mod camera;
+//mod distance;
+//mod img;
+//mod light;
+//mod render;
+mod import;
 
 type ClapResult = Result<(), String>;
 
