@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 num = "~0.2.0"
-vek = "~0.9.7"
+vek = { version = "~0.9.7", features = ["serde"] }
 clap = "~2.32.0"
 png = "~0.14.0"
 chrono = "~0.4.6"
