@@ -5,7 +5,7 @@ A Rust port of [I C the Light][i-c-the-light].
 - [ ] Serialization / deserialization
   - [x] Material
   - [x] Light
-  - [ ] Viewport
+  - [ ] Viewport (under `cameras`)
   - [ ] Render
   - [ ] geometry
 
