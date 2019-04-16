@@ -8,19 +8,19 @@ use vek::{Vec2, Vec3, Ray, Extent2, Lerp};
 /// if `val` is in `domain`, put it in a proportional spot in `codomain`
 fn scale<T>(val: T, domain: Range<T>, codomain: Range<T>) -> T
 where
-    T: Num + Copy + Lerp,
+    T: Num + Copy + Lerp<Output=T> + Into<f32>,
 {
     let scale = (val - domain.start) / (domain.end - domain.start);
-    T::lerp_unclamped(codomain.start, codomain.end, scale)
+    T::lerp_unclamped(codomain.start, codomain.end, scale.into())
 }
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct Viewport<T: Default> {
     /// position and facing of the center of the viewport
-    cam: Ray<T>,
-    right: Vec3<T>,
+    pub cam: Ray<T>,
+    pub right: Vec3<T>,
     /// the viewport's size in world units
-    size: Extent2<T>,
+    pub size: Extent2<T>,
     /// the viewport's focal length; higher means more zoomed in
     pub focal_len: T,
 }
@@ -31,7 +31,7 @@ pub struct Render<'a, T: Default> {
     pub view: &'a Viewport<T>,
 }
 
-impl<'a, T> Viewport<'a, T>
+impl<T> Viewport<T>
 where
     T: Default,
 {
@@ -44,9 +44,9 @@ where
 
     pub fn aspect(&self) -> T
     where
-        T: Div,
+        T: Div<Output=T>,
     {
-        self.width / self.height
+        self.size.w / self.size.h
     }
 
     /// location.x and .y are fractions from 0 to 1 of how far left/bottom in the viewport the
@@ -62,8 +62,8 @@ where
 
         // vectors pointing from the center of the viewport to the width coord and height
         // coord on the viewport
-        let ray_on_viewport = self.right * (width * self.width)
-            + self.right.cross(self.cam.direction) * (height * self.height);
+        let ray_on_viewport = self.right * (width * self.size.w)
+            + self.right.cross(self.cam.direction) * (height * self.size.h);
 
         // vector from the center of the viewport to the origin of the rays
         let camera = self.cam.direction * -self.focal_len;
@@ -76,7 +76,7 @@ where
     }
 }
 
-impl <T> Render<T> {
+impl <'a, T: Default> Render<'a, T> {
     pub fn aspect(&self) -> T
     where
         T: Num + Copy,

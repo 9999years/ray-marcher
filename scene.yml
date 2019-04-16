@@ -6,6 +6,7 @@ geometry:
       material: plain
       epsilon: 0.001
       cutoff: 100
+      max_steps: 64
 materials:
     plain:
         specular: 1.0

@@ -6,14 +6,14 @@ use num::Float;
 use palette::{Alpha, Blend, Component, ComponentWise};
 use vek::Vec3;
 
-use crate::camera::Camera;
+use crate::camera::Viewport;
 
 pub struct BlinnPhong<T, C>
 where
     T: Default,
     C: Default,
 {
-    camera: Camera<T>,
+    viewport: Viewport<T>,
     lights: Vec<Light<T, C>>,
 }
 
@@ -48,7 +48,7 @@ where
 
 impl<T, C> BlinnPhong<T, Alpha<C, T>>
 where
-    T: Float + Sum + Component,
+    T: Float + Sum + Component + Default,
     C: Default + Copy + Blend<Color = C> + ComponentWise<Scalar = T> + Mul<T, Output = C>,
 {
     /// lighting for a given normal and material
@@ -75,7 +75,7 @@ where
     pub fn lighting(&self, normal: Vec3<T>, mat: Material<T>) -> Alpha<C, T> {
         let mut color: Alpha<C, T> = Alpha::default();
         for light in &self.lights {
-            let halfway = (self.camera.rot + light.rot).normalized();
+            let halfway = (self.viewport.cam.direction + light.rot).normalized();
             // add the new light to the total light so far
             // note: light.ambient, light.diffuse, and light.specular
             // can be completely different colors

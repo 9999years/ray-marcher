@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::distance::Estimator;
+use crate::distance::Geometry;
 use crate::light::{BlinnPhong, Material};
 use crate::camera::{Render, Viewport};
 

@@ -1,7 +1,13 @@
-use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
+use std::iter::Sum;
 
-use crate::camera::{Viewport};
+use serde::{Deserialize, Serialize};
+use vek::{Extent2, Ray, Vec3, Quaternion};
+use num::Float;
+
+use crate::camera::Viewport;
+use crate::distance;
+use crate::distance::{Geometry, Estimator};
 
 #[derive(Serialize, Deserialize)]
 struct Render {
@@ -19,20 +25,57 @@ struct Camera<T> {
     height: T,
 }
 
-impl Into<Viewport<T>> for Camera<T> {
+impl <T> Into<Viewport<T>> for Camera<T>
+where
+    T: Float + Sum + Default,
+{
     fn into(self) -> Viewport<T> {
-        Viewport<T> {
-            cam = Ray<T>::new(self.pos, self.facing),
-            right = self.right,
-            size = Extent2<T>::new(self.width, self.height),
-            focal_len = self.focal_len,
+        Viewport {
+            cam: Ray::new(self.pos, self.facing.normalized()),
+            right: self.right,
+            size: Extent2::new(self.width, self.height),
+            focal_len: self.focal_len,
         }
     }
 }
 
-enum Geometry<T> {
-    distance: Estimator<T>,
+#[derive(Serialize, Deserialize)]
+struct Julia<T> {
+    #[serde(alias = "type")]
+    type_: String,
+    c: Quaternion<T>,
+    iterations: usize,
+    material: String,
+    epsilon: T,
+    cutoff: T,
+    max_steps: usize,
 }
 
-impl TryFrom<HashMap<>> for Geometry<T> {
+enum EstimatorErr {
+    UnknownType(String),
+}
+
+impl <T, E> TryFrom<Julia<T>> for Geometry<T, E>
+where
+    T: Float + Sum,
+    E: Estimator<T>,
+{
+    type Error = EstimatorErr;
+
+    fn try_from(value: Julia<T>) -> Result<Self, Self::Error> {
+        if value.type_ != "julia" {
+            return Err(EstimatorErr::UnknownType(value.type_));
+        }
+
+        Ok(Geometry {
+            max_steps: value.max_steps,
+            epsilon: value.epsilon,
+            cutoff: value.cutoff,
+            sample_size: value.epsilon,
+            de: distance::Julia {
+                c: value.c,
+                iterations: value.iterations,
+            },
+        })
+    }
 }
