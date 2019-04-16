@@ -1,13 +1,13 @@
 use std::convert::TryFrom;
 use std::iter::Sum;
 
-use serde::{Deserialize, Serialize};
-use vek::{Extent2, Ray, Vec3, Quaternion};
 use num::Float;
+use serde::{Deserialize, Serialize};
+use vek::{Extent2, Quaternion, Ray, Vec3};
 
 use crate::camera::Viewport;
 use crate::distance;
-use crate::distance::{Geometry, Estimator};
+use crate::distance::{Estimator, Geometry};
 
 #[derive(Serialize, Deserialize)]
 struct Render {
@@ -25,7 +25,7 @@ struct Camera<T> {
     height: T,
 }
 
-impl <T> Into<Viewport<T>> for Camera<T>
+impl<T> Into<Viewport<T>> for Camera<T>
 where
     T: Float + Sum + Default,
 {
@@ -55,7 +55,7 @@ enum EstimatorErr {
     UnknownType(String),
 }
 
-impl <T> TryFrom<Julia<T>> for Geometry<T, distance::Julia<T>>
+impl<T> TryFrom<Julia<T>> for Geometry<T, distance::Julia<T>>
 where
     T: Float + Sum,
 {

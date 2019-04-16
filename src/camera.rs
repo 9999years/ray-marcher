@@ -1,14 +1,14 @@
 use std::iter::Sum;
 use std::ops::{Div, Range};
 
-use serde::{Serialize, Deserialize};
 use num::{Float, Num};
-use vek::{Vec2, Vec3, Ray, Extent2, Lerp};
+use serde::{Deserialize, Serialize};
+use vek::{Extent2, Lerp, Ray, Vec2, Vec3};
 
 /// if `val` is in `domain`, put it in a proportional spot in `codomain`
 fn scale<T>(val: T, domain: Range<T>, codomain: Range<T>) -> T
 where
-    T: Num + Copy + Lerp<Output=T> + Into<f32>,
+    T: Num + Copy + Lerp<Output = T> + Into<f32>,
 {
     let scale = (val - domain.start) / (domain.end - domain.start);
     T::lerp_unclamped(codomain.start, codomain.end, scale.into())
@@ -43,7 +43,7 @@ where
 
     pub fn aspect(&self) -> T
     where
-        T: Div<Output=T> + Copy,
+        T: Div<Output = T> + Copy,
     {
         self.size.w / self.size.h
     }
@@ -75,7 +75,7 @@ where
     }
 }
 
-impl <'a, T: Default> Render<'a, T> {
+impl<'a, T: Default> Render<'a, T> {
     pub fn aspect(&self) -> T
     where
         T: Num + Copy,
@@ -89,7 +89,7 @@ impl <'a, T: Default> Render<'a, T> {
 
     pub fn height(&self) -> usize
     where
-        T: Float + Into<usize>
+        T: Float + Into<usize>,
     {
         (T::from(self.width).unwrap() / self.aspect()).into()
     }

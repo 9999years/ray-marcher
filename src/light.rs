@@ -1,9 +1,9 @@
 use std::iter::Sum;
 use std::ops::Mul;
 
-use serde::{Serialize, Deserialize};
 use num::Float;
 use palette::{Alpha, Blend, Component, ComponentWise};
+use serde::{Deserialize, Serialize};
 use vek::Vec3;
 
 use crate::camera::Viewport;

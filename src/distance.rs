@@ -70,19 +70,16 @@ pub struct Julia<T: Float + Sum> {
     iterations: usize,
 }
 
-impl <T> Julia<T>
+impl<T> Julia<T>
 where
-    T: Float + Sum
+    T: Float + Sum,
 {
     pub fn new(c: Quaternion<T>, iterations: usize) -> Self {
-        Self {
-            c,
-            iterations,
-        }
+        Self { c, iterations }
     }
 }
 
-impl <T> Estimator<T> for Julia<T>
+impl<T> Estimator<T> for Julia<T>
 where
     T: Float + Sum,
 {
