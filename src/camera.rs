@@ -25,13 +25,6 @@ pub struct Viewport<T: Default> {
     pub focal_len: T,
 }
 
-impl Deserialize<'de> for Viewport<T> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de> {
-    };
-}
-
 #[derive(Serialize, Deserialize, Default)]
 pub struct Render<'a, T: Default> {
     width: usize,

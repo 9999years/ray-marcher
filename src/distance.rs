@@ -12,7 +12,7 @@ pub struct Estimator<T> {
     epsilon: T,
     /// rays which exceed this distance are assumed to be lost
     cutoff: T,
-    // sample size for estimating normals
+    /// sample size for estimating normals
     sample_size: T,
     de: DistanceEstimator<T>,
 }
