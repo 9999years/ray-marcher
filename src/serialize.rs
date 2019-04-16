@@ -19,6 +19,17 @@ struct Camera<T> {
     height: T,
 }
 
+impl Into<Viewport<T>> for Camera<T> {
+    fn into(self) -> Viewport<T> {
+        Viewport<T> {
+            cam = Ray<T>::new(self.pos, self.facing),
+            right = self.right,
+            size = Extent2<T>::new(self.width, self.height),
+            focal_len = self.focal_len,
+        }
+    }
+}
+
 enum Geometry<T> {
     distance: Estimator<T>,
 }
