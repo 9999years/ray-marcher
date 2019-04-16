@@ -3,27 +3,34 @@ use std::iter::Sum;
 use num::Float;
 use vek::{Quaternion, Vec3, Vec4};
 
-pub trait Estimator<T> {
+pub trait Estimator<T>: Sized
+where
+    T: Float + Sum,
+{
     fn estimate(&self, pos: Vec3<T>) -> T;
 }
 
 pub type DistanceEstimator<T> = Fn(Vec3<T>) -> T;
 
-pub struct Geometry<T, E: Estimator<T> + Sized> {
-    max_steps: usize,
+pub struct Geometry<T, E>
+where
+    T: Float + Sum,
+    E: Estimator<T>,
+{
+    pub max_steps: usize,
     /// values smaller than ε are considered part of the geometry
-    epsilon: T,
+    pub epsilon: T,
     /// rays which exceed this distance are assumed to be lost
-    cutoff: T,
+    pub cutoff: T,
     /// sample size for estimating normals
-    sample_size: T,
-    de: E,
+    pub sample_size: T,
+    pub de: E,
 }
 
 impl<T, E> Geometry<T, E>
 where
-    T: Float,
-    E: Estimator<T> + Sized,
+    T: Float + Sum,
+    E: Estimator<T>,
 {
     pub fn estimate(&self, pos: Vec3<T>, rot: Vec3<T>) -> Option<Vec3<T>> {
         let mut total_dist = T::from(0).unwrap();
@@ -61,6 +68,18 @@ where
 pub struct Julia<T: Float + Sum> {
     c: Quaternion<T>,
     iterations: usize,
+}
+
+impl <T> Julia<T>
+where
+    T: Float + Sum
+{
+    pub fn new(c: Quaternion<T>, iterations: usize) -> Self {
+        Self {
+            c,
+            iterations,
+        }
+    }
 }
 
 impl <T> Estimator<T> for Julia<T>

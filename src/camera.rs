@@ -25,7 +25,6 @@ pub struct Viewport<T: Default> {
     pub focal_len: T,
 }
 
-#[derive(Serialize, Deserialize, Default)]
 pub struct Render<'a, T: Default> {
     width: usize,
     pub view: &'a Viewport<T>,
@@ -44,7 +43,7 @@ where
 
     pub fn aspect(&self) -> T
     where
-        T: Div<Output=T>,
+        T: Div<Output=T> + Copy,
     {
         self.size.w / self.size.h
     }

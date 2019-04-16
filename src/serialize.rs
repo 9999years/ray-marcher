@@ -55,10 +55,9 @@ enum EstimatorErr {
     UnknownType(String),
 }
 
-impl <T, E> TryFrom<Julia<T>> for Geometry<T, E>
+impl <T> TryFrom<Julia<T>> for Geometry<T, distance::Julia<T>>
 where
     T: Float + Sum,
-    E: Estimator<T>,
 {
     type Error = EstimatorErr;
 
@@ -72,10 +71,7 @@ where
             epsilon: value.epsilon,
             cutoff: value.cutoff,
             sample_size: value.epsilon,
-            de: distance::Julia {
-                c: value.c,
-                iterations: value.iterations,
-            },
+            de: distance::Julia::new(value.c, value.iterations),
         })
     }
 }
