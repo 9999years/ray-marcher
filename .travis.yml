@@ -1,0 +1,22 @@
+---
+dist: xenial
+language: rust
+rust:
+    - stable
+    - beta
+    - nightly
+cache: cargo
+matrix:
+    allow_failures:
+        - rust: nightly
+    fast_finish: true
+before_script:
+    - rustup component add clippy
+    - rustup component add rustfmt
+    - pip install --user yamllint
+script:
+    - cargo fmt --all -- --check
+    - cargo build --verbose
+    - cargo test --verbose
+    - cargo clippy
+    - find -name '*.yml' -or -name '*.yaml' -exec yamllint -c ./.yamllintrc.yml '{}' +
