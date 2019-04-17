@@ -65,7 +65,7 @@ enum Geometry<T> {
     Julia(Julia<T>),
 }
 
-impl <T> Into<distance::Geometry<T, distance::Julia<T>>> for Geometry<T>
+impl<T> Into<distance::Geometry<T, distance::Julia<T>>> for Geometry<T>
 where
     T: Float + Sum,
 {
@@ -95,7 +95,7 @@ where
     renders: Vec<Render>,
 }
 
-impl <'a, T, C, E> Into<render::Scene<'a, T, C, E>> for Scene<T, C>
+impl<'a, T, C, E> Into<render::Scene<'a, T, C, E>> for Scene<T, C>
 where
     T: Float + Sum + Default,
     C: Default,

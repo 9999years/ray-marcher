@@ -2,9 +2,9 @@ use std::iter::Sum;
 
 use num::Float;
 
-use crate::distance::{Estimator, Geometry};
-use crate::light::{BlinnPhong, Material, Light};
 use crate::camera::{Render, Viewport};
+use crate::distance::{Estimator, Geometry};
+use crate::light::{BlinnPhong, Light, Material};
 
 pub struct RenderGeometry<'a, T, E>
 where
