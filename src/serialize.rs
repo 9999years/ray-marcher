@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::collections::HashMap;
 use std::iter::Sum;
 
 use num::Float;
@@ -7,7 +7,9 @@ use vek::{Extent2, Quaternion, Ray, Vec3};
 
 use crate::camera::Viewport;
 use crate::distance;
-use crate::distance::{Estimator, Geometry};
+use crate::distance::Estimator;
+use crate::light::{Light, Material};
+use crate::render;
 
 #[derive(Serialize, Deserialize)]
 struct Render {
@@ -40,38 +42,66 @@ where
 }
 
 #[derive(Serialize, Deserialize)]
-struct Julia<T> {
-    #[serde(alias = "type")]
-    type_: String,
-    c: Quaternion<T>,
-    iterations: usize,
+struct EstimatorBase<T> {
     material: String,
     epsilon: T,
     cutoff: T,
     max_steps: usize,
 }
 
-enum EstimatorErr {
-    UnknownType(String),
+#[derive(Serialize, Deserialize)]
+struct Julia<T> {
+    c: Quaternion<T>,
+    iterations: usize,
+
+    #[serde(flatten)]
+    est: EstimatorBase<T>,
 }
 
-impl<T> TryFrom<Julia<T>> for Geometry<T, distance::Julia<T>>
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename_all = "lowercase")]
+enum Geometry<T> {
+    Julia(Julia<T>),
+}
+
+impl <T> Into<distance::Geometry<T, distance::Julia<T>>> for Geometry<T>
 where
     T: Float + Sum,
 {
-    type Error = EstimatorErr;
-
-    fn try_from(value: Julia<T>) -> Result<Self, Self::Error> {
-        if value.type_ != "julia" {
-            return Err(EstimatorErr::UnknownType(value.type_));
+    fn into(self) -> distance::Geometry<T, distance::Julia<T>> {
+        match self {
+            Geometry::Julia(julia) => distance::Geometry {
+                max_steps: julia.est.max_steps,
+                epsilon: julia.est.epsilon,
+                cutoff: julia.est.cutoff,
+                sample_size: julia.est.epsilon,
+                de: distance::Julia::new(julia.c, julia.iterations),
+            },
         }
+    }
+}
 
-        Ok(Geometry {
-            max_steps: value.max_steps,
-            epsilon: value.epsilon,
-            cutoff: value.cutoff,
-            sample_size: value.epsilon,
-            de: distance::Julia::new(value.c, value.iterations),
-        })
+#[derive(Serialize, Deserialize, Default)]
+pub struct Scene<T, C>
+where
+    T: Float + Sum + Default,
+    C: Default,
+{
+    geometry: Vec<Geometry<T>>,
+    materials: HashMap<String, Material<T>>,
+    lights: Vec<Light<T, C>>,
+    cameras: HashMap<String, Camera<T>>,
+    renders: Vec<Render>,
+}
+
+impl <'a, T, C, E> Into<render::Scene<'a, T, C, E>> for Scene<T, C>
+where
+    T: Float + Sum + Default,
+    C: Default,
+    E: Estimator<T>,
+{
+    fn into(self) -> render::Scene<'a, T, C, E> {
+        unimplemented!();
     }
 }

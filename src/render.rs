@@ -1,20 +1,29 @@
-use std::collections::HashMap;
-
-use crate::distance::Geometry;
-use crate::light::{BlinnPhong, Material};
-use crate::camera::{Render, Viewport};
+use std::iter::Sum;
 
 use num::Float;
 
-#[derive(Default)]
-pub struct Scene<'a, T, C>
+use crate::distance::{Estimator, Geometry};
+use crate::light::{BlinnPhong, Material, Light};
+use crate::camera::{Render, Viewport};
+
+pub struct RenderGeometry<'a, T, E>
 where
-    T: Float,
-    C: Default,
+    T: Float + Sum + Default,
+    E: Estimator<T>,
 {
-    // TODO geometry
-    materials: HashMap<&'a str, Material<T>>,
-    lights: Vec<Light<T>>,
-    cameras: HashMap<&'a str, Viewport<T>>,
-    renders: Vec<Render<T>>,
+    mat: &'a Material<T>,
+    geom: Geometry<T, E>,
+}
+
+pub struct Scene<'a, T, C, E>
+where
+    T: Float + Sum + Default,
+    C: Default,
+    E: Estimator<T>,
+{
+    geometry: Vec<RenderGeometry<'a, T, E>>,
+    materials: Vec<Material<T>>,
+    lights: Vec<Light<T, C>>,
+    cameras: Vec<Viewport<T>>,
+    renders: Vec<Render<'a, T>>,
 }
