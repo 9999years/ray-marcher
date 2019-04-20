@@ -15,6 +15,16 @@ where
     geom: Geometry<T, E>,
 }
 
+//impl RenderGeometry<'a, T, E>
+//where
+    //T: Float + Sum + Default,
+    //E: Estimator<T>,
+//{
+    //pub fn new(mat: &'a Material<T>, geom: Geometry<T, E>) -> Self {
+
+    //}
+//}
+
 pub struct Scene<'a, T, C, E>
 where
     T: Float + Sum + Default,

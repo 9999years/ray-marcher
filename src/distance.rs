@@ -10,8 +10,6 @@ where
     fn estimate(&self, pos: Vec3<T>) -> T;
 }
 
-pub type DistanceEstimator<T> = Fn(Vec3<T>) -> T;
-
 pub struct Geometry<T, E>
 where
     T: Float + Sum,

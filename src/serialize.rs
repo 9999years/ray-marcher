@@ -1,20 +1,41 @@
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::iter::Sum;
 
 use num::Float;
 use serde::{Deserialize, Serialize};
 use vek::{Extent2, Quaternion, Ray, Vec3};
 
+use crate::camera;
 use crate::camera::Viewport;
 use crate::distance;
 use crate::distance::Estimator;
 use crate::light::{Light, Material};
 use crate::render;
 
+pub enum SceneDeserializeErr {
+    UnknownMaterial(String),
+    UnknownCamera(String),
+}
+
 #[derive(Serialize, Deserialize)]
 struct Render {
     camera: String,
     width: usize,
+}
+
+impl Render {
+    pub fn intoRender<'a, T>(self, cameras: &HashMap<String, Viewport<T>>)
+        -> Result<camera::Render<'a, T>, SceneDeserializeErr>
+    where
+        T: Float + Sum + Default
+    {
+        camera::Render {
+            width: self.width,
+            view: cameras.get(self.camera)
+                .ok_or(SceneDeserializeErr::UnknownCamera)?,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -82,6 +103,20 @@ where
     }
 }
 
+fn intoRenderGeoms<'a, T>(geom: &Vec<Geometry<T>>,
+                        materials: &HashMap<String, Material<T>>)
+-> Result<Vec<render::RenderGeometry<'a, T, distance::Julia<T>>>, SceneDeserializeErr>
+where
+    T: Float + Sum + Default,
+{
+    Ok(geom.iter().map(|g| match g {
+        Geometry::Julia(j) => (j.est.material, j.into()),
+    }).map(|(m, g)| render::RenderGeometry {
+        mat: materials.get(m).ok_or(SceneDeserializeErr::UnknownMaterial(m))?,
+        geom: g,
+    }).collect())
+}
+
 #[derive(Serialize, Deserialize, Default)]
 pub struct Scene<T, C>
 where
@@ -95,13 +130,21 @@ where
     renders: Vec<Render>,
 }
 
-impl<'a, T, C, E> Into<render::Scene<'a, T, C, E>> for Scene<T, C>
+impl<'a, T, C, E> TryInto<render::Scene<'a, T, C, E>> for Scene<T, C>
 where
     T: Float + Sum + Default,
     C: Default,
     E: Estimator<T>,
 {
-    fn into(self) -> render::Scene<'a, T, C, E> {
-        unimplemented!();
+    fn try_into(self) -> Result<render::Scene<'a, T, C, E>, SceneDeserializeErr> {
+        let viewports: HashMap<&str, Viewport<T>> = self.cameras.iter()
+            .map(|s, c| (s, c.into())).collect();
+        Ok(render::Scene {
+            geometry: intoRenderGeoms(self.geometry, self.materials)?,
+            materials: self.materials.values().collect(),
+            lights: self.lights,
+            cameras: viewports.values().collect(),
+            renders: self.renders.iter().map(|r| r.intoRender(viewports)?).collect(),
+        })
     }
 }
