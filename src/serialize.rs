@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::convert::TryInto;
+use std::convert::TryFrom;
 use std::iter::Sum;
 
 use num::Float;
@@ -9,7 +9,6 @@ use vek::{Extent2, Quaternion, Ray, Vec3};
 use crate::camera;
 use crate::camera::Viewport;
 use crate::distance;
-use crate::distance::Estimator;
 use crate::light::{Light, Material};
 use crate::render;
 
@@ -25,16 +24,19 @@ struct Render {
 }
 
 impl Render {
-    pub fn intoRender<'a, T>(self, cameras: &HashMap<String, Viewport<T>>)
-        -> Result<camera::Render<'a, T>, SceneDeserializeErr>
+    pub fn intoRender<'a, T>(
+        self,
+        cameras: &'a HashMap<&'a String, Viewport<T>>,
+    ) -> Result<camera::Render<'a, T>, SceneDeserializeErr>
     where
-        T: Float + Sum + Default
+        T: Float + Sum + Default,
     {
-        camera::Render {
+        Ok(camera::Render {
             width: self.width,
-            view: cameras.get(self.camera)
-                .ok_or(SceneDeserializeErr::UnknownCamera)?,
-        }
+            view: cameras
+                .get(&self.camera.clone())
+                .ok_or_else(|| SceneDeserializeErr::UnknownCamera(self.camera.clone()))?,
+        })
     }
 }
 
@@ -48,16 +50,16 @@ struct Camera<T> {
     height: T,
 }
 
-impl<T> Into<Viewport<T>> for Camera<T>
+impl<T> From<&Camera<T>> for Viewport<T>
 where
     T: Float + Sum + Default,
 {
-    fn into(self) -> Viewport<T> {
+    fn from(cam: &Camera<T>) -> Viewport<T> {
         Viewport {
-            cam: Ray::new(self.pos, self.facing.normalized()),
-            right: self.right,
-            size: Extent2::new(self.width, self.height),
-            focal_len: self.focal_len,
+            cam: Ray::new(cam.pos, cam.facing.normalized()),
+            right: cam.right,
+            size: Extent2::new(cam.width, cam.height),
+            focal_len: cam.focal_len,
         }
     }
 }
@@ -86,35 +88,41 @@ enum Geometry<T> {
     Julia(Julia<T>),
 }
 
-impl<T> Into<distance::Geometry<T, distance::Julia<T>>> for Geometry<T>
+impl<T> From<&Julia<T>> for distance::Geometry<T>
 where
     T: Float + Sum,
 {
-    fn into(self) -> distance::Geometry<T, distance::Julia<T>> {
-        match self {
-            Geometry::Julia(julia) => distance::Geometry {
-                max_steps: julia.est.max_steps,
-                epsilon: julia.est.epsilon,
-                cutoff: julia.est.cutoff,
-                sample_size: julia.est.epsilon,
-                de: distance::Julia::new(julia.c, julia.iterations),
-            },
+    fn from(julia: &Julia<T>) -> distance::Geometry<T> {
+        distance::Geometry {
+            max_steps: julia.est.max_steps,
+            epsilon: julia.est.epsilon,
+            cutoff: julia.est.cutoff,
+            sample_size: julia.est.epsilon,
+            de: distance::Julia::new(julia.c, julia.iterations).into(),
         }
     }
 }
 
-fn intoRenderGeoms<'a, T>(geom: &Vec<Geometry<T>>,
-                        materials: &HashMap<String, Material<T>>)
--> Result<Vec<render::RenderGeometry<'a, T, distance::Julia<T>>>, SceneDeserializeErr>
+fn intoRenderGeoms<'a, T>(
+    geom: &Vec<Geometry<T>>,
+    materials: &'a HashMap<String, Material<T>>,
+) -> Result<Vec<render::RenderGeometry<'a, T>>, SceneDeserializeErr>
 where
     T: Float + Sum + Default,
 {
-    Ok(geom.iter().map(|g| match g {
-        Geometry::Julia(j) => (j.est.material, j.into()),
-    }).map(|(m, g)| render::RenderGeometry {
-        mat: materials.get(m).ok_or(SceneDeserializeErr::UnknownMaterial(m))?,
-        geom: g,
-    }).collect())
+    geom.iter()
+        .map(|g| match g {
+            Geometry::Julia(j) => (j.est.material, j.into()),
+        })
+        .map(|(m, g)| {
+            Ok(render::RenderGeometry {
+                mat: materials
+                    .get(&m)
+                    .ok_or_else(|| SceneDeserializeErr::UnknownMaterial(m.clone()))?,
+                geom: g,
+            })
+        })
+        .collect()
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -130,21 +138,26 @@ where
     renders: Vec<Render>,
 }
 
-impl<'a, T, C, E> TryInto<render::Scene<'a, T, C, E>> for Scene<T, C>
+impl<'a, T, C> TryFrom<Scene<T, C>> for render::Scene<'a, T, C>
 where
     T: Float + Sum + Default,
     C: Default,
-    E: Estimator<T>,
 {
-    fn try_into(self) -> Result<render::Scene<'a, T, C, E>, SceneDeserializeErr> {
-        let viewports: HashMap<&str, Viewport<T>> = self.cameras.iter()
-            .map(|s, c| (s, c.into())).collect();
+    type Error = SceneDeserializeErr;
+
+    fn try_from(scene: Scene<T, C>) -> Result<render::Scene<'a, T, C>, SceneDeserializeErr> {
+        let viewports: HashMap<&String, Viewport<T>> =
+            scene.cameras.iter().map(|(s, c)| (s, c.into())).collect();
         Ok(render::Scene {
-            geometry: intoRenderGeoms(self.geometry, self.materials)?,
-            materials: self.materials.values().collect(),
-            lights: self.lights,
-            cameras: viewports.values().collect(),
-            renders: self.renders.iter().map(|r| r.intoRender(viewports)?).collect(),
+            geometry: intoRenderGeoms(&scene.geometry, &scene.materials)?,
+            materials: scene.materials.values().cloned().collect(),
+            lights: scene.lights,
+            cameras: viewports.values().cloned().collect(),
+            renders: scene
+                .renders
+                .iter()
+                .map(|r| r.intoRender(&viewports))
+                .collect::<Result<Vec<camera::Render<'a, T>>, SceneDeserializeErr>>()?,
         })
     }
 }

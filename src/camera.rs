@@ -14,7 +14,7 @@ where
     T::lerp_unclamped(codomain.start, codomain.end, scale.into())
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone, Copy)]
 pub struct Viewport<T: Default> {
     /// position and facing of the center of the viewport
     pub cam: Ray<T>,

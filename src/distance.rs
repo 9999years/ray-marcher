@@ -10,10 +10,35 @@ where
     fn estimate(&self, pos: Vec3<T>) -> T;
 }
 
-pub struct Geometry<T, E>
+pub enum GeometryEstimator<T>
+where T: Float + Sum,
+{
+    Julia(Julia<T>),
+}
+
+impl<T> From<Julia<T>> for GeometryEstimator<T>
 where
     T: Float + Sum,
-    E: Estimator<T>,
+{
+    fn from(julia: Julia<T>) -> Self {
+        GeometryEstimator::Julia(julia)
+    }
+}
+
+impl<T> Estimator<T> for GeometryEstimator<T>
+where
+    T: Float + Sum,
+{
+    fn estimate(&self, pos: Vec3<T>) -> T {
+        match self {
+            GeometryEstimator::Julia(julia) => julia.estimate(pos),
+        }
+    }
+}
+
+pub struct Geometry<T>
+where
+    T: Float + Sum,
 {
     pub max_steps: usize,
     /// values smaller than ε are considered part of the geometry
@@ -22,13 +47,21 @@ where
     pub cutoff: T,
     /// sample size for estimating normals
     pub sample_size: T,
-    pub de: E,
+    pub de: GeometryEstimator<T>,
 }
 
-impl<T, E> Geometry<T, E>
+impl<T> Estimator<T> for Geometry<T>
 where
     T: Float + Sum,
-    E: Estimator<T>,
+{
+    fn estimate(&self, pos: Vec3<T>) -> T {
+        self.de.estimate(pos)
+    }
+}
+
+impl<T> Geometry<T>
+where
+    T: Float + Sum,
 {
     pub fn estimate(&self, pos: Vec3<T>, rot: Vec3<T>) -> Option<Vec3<T>> {
         let mut total_dist = T::from(0).unwrap();

@@ -17,7 +17,7 @@ where
     lights: Vec<Light<T, C>>,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Copy, Clone)]
 pub struct Material<T: Default> {
     specular: T,
     diffuse: T,
