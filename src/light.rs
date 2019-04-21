@@ -10,8 +10,8 @@ use crate::camera::Viewport;
 
 pub struct BlinnPhong<T, C>
 where
-    T: Default,
-    C: Default,
+    T: Default + Clone,
+    C: Default + Clone,
 {
     viewport: Viewport<T>,
     lights: Vec<Light<T, C>>,
@@ -29,11 +29,11 @@ pub struct Material<T: Default> {
 }
 
 /// C being the color type
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Clone, Copy)]
 pub struct Light<T, C>
 where
-    T: Default,
-    C: Default,
+    T: Default + Clone,
+    C: Default + Clone,
 {
     // L
     #[serde(alias = "facing")]

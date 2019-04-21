@@ -6,11 +6,11 @@ use crate::camera::{Render, Viewport};
 use crate::distance::Geometry;
 use crate::light::{Light, Material};
 
-pub struct RenderGeometry<'a, T>
+pub struct RenderGeometry<T>
 where
     T: Float + Sum + Default,
 {
-    mat: &'a Material<T>,
+    mat: Material<T>,
     geom: Geometry<T>,
 }
 
@@ -24,14 +24,12 @@ where
     //}
 //}
 
-pub struct Scene<'a, T, C>
+pub struct Scene<T, C>
 where
-    T: Float + Sum + Default,
-    C: Default,
+    T: Float + Sum + Default + Clone,
+    C: Default + Clone,
 {
-    geometry: Vec<RenderGeometry<'a, T>>,
-    materials: Vec<Material<T>>,
+    geometry: Vec<RenderGeometry<T>>,
     lights: Vec<Light<T, C>>,
-    cameras: Vec<Viewport<T>>,
-    renders: Vec<Render<'a, T>>,
+    renders: Vec<Render<T>>,
 }

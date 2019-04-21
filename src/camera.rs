@@ -25,9 +25,9 @@ pub struct Viewport<T: Default> {
     pub focal_len: T,
 }
 
-pub struct Render<'a, T: Default> {
+pub struct Render<T: Default> {
     width: usize,
-    pub view: &'a Viewport<T>,
+    pub view: Viewport<T>,
 }
 
 impl<T> Viewport<T>
@@ -75,7 +75,7 @@ where
     }
 }
 
-impl<'a, T: Default> Render<'a, T> {
+impl<T: Default> Render<T> {
     pub fn aspect(&self) -> T
     where
         T: Num + Copy,
