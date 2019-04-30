@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/9999years/ray-marcher.svg?branch=master)](https://travis-ci.com/9999years/ray-marcher)
+
 A Rust port of [I C the Light][i-c-the-light].
 
 # To-do

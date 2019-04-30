@@ -17,7 +17,7 @@ pub enum SceneDeserializeErr {
     UnknownCamera(String),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Render {
     pub camera: String,
     pub width: usize,
@@ -163,5 +163,29 @@ where
                 .map(|r| r.into_render(&viewports))
                 .collect::<Result<Vec<camera::Render<T>>, SceneDeserializeErr>>()?,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::{assert_eq, assert_ne};
+    use indoc::indoc;
+    use serde_yaml;
+
+    use super::{Render};
+
+    #[test]
+    fn render_deser() {
+        let render: Render = serde_yaml::from_str(
+            indoc!("
+                camera: main
+                width: 300
+                ")
+        ).unwrap();
+        assert_eq!(render,
+                   Render {
+                       camera: "main".to_owned(),
+                       width: 300,
+                   });
     }
 }

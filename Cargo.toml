@@ -15,7 +15,6 @@ yaml-rust = "~0.4"
 serde_yaml = "~0.8.8"
 serde = { version = "~1.0.89", features = ["derive"] }
 
-# #[cfg(test)]
-# use pretty_assertions::{assert_eq, assert_ne};
 [dev-dependencies]
 pretty_assertions = "~0.6.1"
+indoc = "0.3"
