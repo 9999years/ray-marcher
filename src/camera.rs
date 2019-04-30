@@ -26,7 +26,7 @@ pub struct Viewport<T: Default> {
 }
 
 pub struct Render<T: Default> {
-    width: usize,
+    pub width: usize,
     pub view: Viewport<T>,
 }
 

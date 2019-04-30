@@ -11,7 +11,8 @@ where
 }
 
 pub enum GeometryEstimator<T>
-where T: Float + Sum,
+where
+    T: Float + Sum,
 {
     Julia(Julia<T>),
 }

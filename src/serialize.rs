@@ -18,14 +18,14 @@ pub enum SceneDeserializeErr {
 }
 
 #[derive(Serialize, Deserialize)]
-struct Render {
-    camera: String,
-    width: usize,
+pub struct Render {
+    pub camera: String,
+    pub width: usize,
 }
 
 impl Render {
-    pub fn intoRender<'a, T>(
-        self,
+    pub fn into_render<'a, T>(
+        &self,
         cameras: &'a HashMap<String, Viewport<T>>,
     ) -> Result<camera::Render<T>, SceneDeserializeErr>
     where
@@ -42,7 +42,7 @@ impl Render {
 }
 
 #[derive(Serialize, Deserialize)]
-struct Camera<T> {
+pub struct Camera<T> {
     facing: Vec3<T>,
     right: Vec3<T>,
     pos: Vec3<T>,
@@ -85,7 +85,7 @@ struct Julia<T> {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename_all = "lowercase")]
-enum Geometry<T> {
+pub enum Geometry<T> {
     Julia(Julia<T>),
 }
 
@@ -104,7 +104,7 @@ where
     }
 }
 
-fn intoRenderGeoms<T>(
+fn into_render_geoms<T>(
     geom: &Vec<Geometry<T>>,
     materials: &HashMap<String, Material<T>>,
 ) -> Result<Vec<render::RenderGeometry<T>>, SceneDeserializeErr>
@@ -133,11 +133,11 @@ where
     T: Float + Sum + Default + Clone,
     C: Default + Clone,
 {
-    geometry: Vec<Geometry<T>>,
-    materials: HashMap<String, Material<T>>,
-    lights: Vec<Light<T, C>>,
-    cameras: HashMap<String, Camera<T>>,
-    renders: Vec<Render>,
+    pub geometry: Vec<Geometry<T>>,
+    pub materials: HashMap<String, Material<T>>,
+    pub lights: Vec<Light<T, C>>,
+    pub cameras: HashMap<String, Camera<T>>,
+    pub renders: Vec<Render>,
 }
 
 impl<T, C> TryFrom<&Scene<T, C>> for render::Scene<T, C>
@@ -148,16 +148,19 @@ where
     type Error = SceneDeserializeErr;
 
     fn try_from(scene: &Scene<T, C>) -> Result<render::Scene<T, C>, SceneDeserializeErr> {
-        let viewports: HashMap<String, Viewport<T>> =
-            scene.cameras.iter().map(|(s, c)| (s.to_owned(), c.into())).collect();
+        let viewports: HashMap<String, Viewport<T>> = scene
+            .cameras
+            .iter()
+            .map(|(s, c)| (s.to_owned(), c.into()))
+            .collect();
 
         Ok(render::Scene {
-            geometry: intoRenderGeoms(&scene.geometry, &scene.materials)?,
+            geometry: into_render_geoms(&scene.geometry, &scene.materials)?,
             lights: scene.lights.clone(),
             renders: scene
                 .renders
                 .iter()
-                .map(|r| r.intoRender(&viewports))
+                .map(|r| r.into_render(&viewports))
                 .collect::<Result<Vec<camera::Render<T>>, SceneDeserializeErr>>()?,
         })
     }
