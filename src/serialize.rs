@@ -9,13 +9,30 @@ use vek::{Extent2, Quaternion, Ray, Vec3};
 use crate::camera;
 use crate::camera::Viewport;
 use crate::distance;
-use crate::light::{Light, Material};
+use crate::light;
+use crate::light::Material;
 use crate::render;
 
 pub enum SceneDeserializeErr {
     UnknownMaterial(String),
     UnknownCamera(String),
 }
+
+#[derive(Serialize, Deserialize, Default, Clone, Copy, Debug, PartialEq)]
+pub struct Light<T, C, A>
+where
+    T: Default + Clone, // coordinate floating point type
+    C: Default + Clone, // color channel type
+    A: Default + Clone, // alpha type
+{
+    #[serde(alias = "facing")]
+    rot: Vec3<T>,
+
+    #[serde(flatten)]
+    col: Material<Vec3<C, A>>,
+}
+
+
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Render {
@@ -41,7 +58,7 @@ impl Render {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Camera<T> {
     facing: Vec3<T>,
     right: Vec3<T>,
@@ -171,11 +188,14 @@ mod tests {
     use pretty_assertions::{assert_eq, assert_ne};
     use indoc::indoc;
     use serde_yaml;
+    use vek::Vec3;
+    use palette::Srgba;
 
-    use super::{Render};
+    use super::{Render, Camera};
+    use crate::light::{Light, Material};
 
     #[test]
-    fn render_deser() {
+    fn render_deser_test() {
         let render: Render = serde_yaml::from_str(
             indoc!("
                 camera: main
@@ -186,6 +206,68 @@ mod tests {
                    Render {
                        camera: "main".to_owned(),
                        width: 300,
+                   });
+    }
+
+    #[test]
+    fn render_vec_deser_test() {
+        let render: Vec<Render> = serde_yaml::from_str(
+            indoc!("
+                - camera: main
+                  width: 300
+                - camera: xyz
+                  width: 20000
+                ")
+        ).unwrap();
+        assert_eq!(render,
+                   vec!(Render {
+                       camera: "main".to_owned(),
+                       width: 300,
+                   }, Render {
+                       camera: "xyz".to_owned(),
+                       width: 20000,
+                   }));
+    }
+
+    #[test]
+    fn camera_deser_test() {
+        let cam: Camera<f64> = serde_yaml::from_str(
+            indoc!("
+                facing: [1, 0, 0]
+                right: [0, 1, 0]
+                pos: [0, 0, 0]
+                focal_len: 10
+                width: 3
+                height: 2
+                ")).unwrap();
+        assert_eq!(cam,
+                   Camera {
+                       facing: Vec3::new(1.0, 0.0, 0.0),
+                       right: Vec3::new(0.0, 1.0, 0.0),
+                       pos: Vec3::new(0.0, 0.0, 0.0),
+                       focal_len: 10.0,
+                       width: 3.0,
+                       height: 2.0,
+                   });
+    }
+
+    #[test]
+    fn light_deser_test() {
+        let light: Light<f64, Srgba> = serde_yaml::from_str(
+            indoc!("
+            facing: [0, 0, 0]
+            specular: [1, 1, 1, 1]
+            diffuse: [1, 1, 1, 1]
+            ambient: [1, 1, 0.5, 1]
+            ")).unwrap();
+        assert_eq!(light,
+                   Light {
+                       rot: Vec3::new(0.0, 0.0, 0.0),
+                       col: Material {
+                        specular: Srgba::new(1.0, 1.0, 1.0, 1.0),
+                        diffuse: Srgba::new(1.0, 1.0, 1.0, 1.0),
+                        ambient: Srgba::new(1.0, 1.0, 0.5, 1.0),
+                       },
                    });
     }
 }

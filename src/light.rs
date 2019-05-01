@@ -3,7 +3,7 @@ use std::ops::Mul;
 
 use num::Float;
 use palette::{Alpha, Blend, Component, ComponentWise};
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, Deserialize};
 use vek::Vec3;
 
 use crate::camera::Viewport;
@@ -17,7 +17,7 @@ where
     lights: Vec<Light<T, C>>,
 }
 
-#[derive(Serialize, Deserialize, Default, Copy, Clone)]
+#[derive(Serialize, Deserialize, Default, Copy, Clone, Debug, PartialEq)]
 pub struct Material<T: Default> {
     specular: T,
     diffuse: T,
@@ -29,19 +29,17 @@ pub struct Material<T: Default> {
 }
 
 /// C being the color type
-#[derive(Serialize, Deserialize, Default, Clone, Copy)]
+#[derive(Default, Clone, Copy, Debug, PartialEq)]
 pub struct Light<T, C>
 where
     T: Default + Clone,
     C: Default + Clone,
 {
     // L
-    #[serde(alias = "facing")]
     rot: Vec3<T>,
 
     // i_s, i_d, i_a
     // col(or)
-    #[serde(flatten)]
     col: Material<C>,
     // k_s, k_d, k_a in a material
 }
