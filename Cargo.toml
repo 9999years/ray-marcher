@@ -11,6 +11,7 @@ clap = "~2.32.0"
 png = "~0.14.0"
 chrono = "~0.4.6"
 palette = "~0.4.1"
+color_processing = "~0.3.0"
 yaml-rust = "~0.4"
 serde_yaml = "~0.8.8"
 serde = { version = "~1.0.89", features = ["derive"] }
