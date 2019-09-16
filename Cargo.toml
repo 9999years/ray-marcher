@@ -6,16 +6,16 @@ edition = "2018"
 
 [dependencies]
 num = "~0.2.0"
-vek = { version = "~0.9.7", features = ["serde"] }
-clap = "~2.32.0"
-png = "~0.14.0"
-chrono = "~0.4.6"
+vek = { version = "~0.9.9", features = ["serde"] }
+clap = "~2.33.0"
+png = "~0.15.0"
+chrono = "~0.4.9"
 palette = "~0.4.1"
-color_processing = "~0.3.0"
-yaml-rust = "~0.4"
-serde_yaml = "~0.8.8"
-serde = { version = "~1.0.89", features = ["derive"] }
+color_processing = "~0.3.1"
+yaml-rust = "~0.4.3"
+serde_yaml = "~0.8.9"
+serde = { version = "~1.0.100", features = ["derive"] }
 
 [dev-dependencies]
 pretty_assertions = "~0.6.1"
-indoc = "0.3"
+indoc = "~0.3.4"

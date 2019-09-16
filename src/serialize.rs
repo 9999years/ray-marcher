@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 use std::iter::Sum;
-use std::fmt;
 
 use color_processing::Color;
 use num::Float;
+use palette::{rgb::Rgb, rgb::RgbStandard, Alpha, Component};
 use serde::{Deserialize, Serialize};
 use vek::{Extent2, Quaternion, Ray, Vec3};
-use palette::{Alpha, Component, rgb::Rgb, rgb::RgbStandard};
 
 use crate::camera;
 use crate::camera::Viewport;
@@ -35,7 +34,8 @@ where
         color.red.convert(),
         color.green.convert(),
         color.blue.convert(),
-        color.alpha.convert()))
+        color.alpha.convert(),
+    ))
 }
 
 pub fn str_to_color_result<C, T, A>(col: &str) -> Result<Alpha<Rgb<C, T>, A>, SceneDeserializeErr>
@@ -44,10 +44,7 @@ where
     T: Component,
     A: Component,
 {
-    str_to_color(col)
-        .ok_or_else(
-            || SceneDeserializeErr::ColorParseErr(
-                String::from(col)))
+    str_to_color(col).ok_or_else(|| SceneDeserializeErr::ColorParseErr(String::from(col)))
 }
 
 impl<S, T, A> TryFrom<&Material<String>> for Material<Alpha<Rgb<S, T>, A>>
@@ -60,10 +57,19 @@ where
 
     fn try_from(mat: &Material<String>) -> Result<Self, Self::Error> {
         Ok(Material {
-            specular:  str_to_color_result(&mat.specular)?,
-            diffuse:   str_to_color_result(&mat.diffuse)?,
-            ambient:   str_to_color_result(&mat.ambient)?,
-            shininess: str_to_color_result(&mat.shininess)?,
+            specular: str_to_color_result(&mat.specular)?,
+            diffuse: str_to_color_result(&mat.diffuse)?,
+            ambient: str_to_color_result(&mat.ambient)?,
+
+            // `shininess` is allowed to be ommitted; for Materials which store colors, the
+            // default is usually black (or similar) which is fine, but for `String`s, the default
+            // value is the empty string, which is a parse error according to color_processing.
+            // Therefore, we detect the empty string and replace it with the default color.
+            shininess: if (&mat.shininess).is_empty() {
+                Default::default()
+            } else {
+                str_to_color_result(&mat.shininess)?
+            },
         })
     }
 }
@@ -227,7 +233,9 @@ where
 {
     type Error = SceneDeserializeErr;
 
-    fn try_from(scene: &Scene<T>) -> Result<render::Scene<T, Alpha<Rgb<S, T>, A>>, SceneDeserializeErr> {
+    fn try_from(
+        scene: &Scene<T>,
+    ) -> Result<render::Scene<T, Alpha<Rgb<S, T>, A>>, SceneDeserializeErr> {
         let viewports: HashMap<String, Viewport<T>> = scene
             .cameras
             .iter()
@@ -236,12 +244,13 @@ where
 
         Ok(render::Scene {
             geometry: into_render_geoms(&scene.geometry, &scene.materials)?,
-            lights: scene.lights
+            lights: scene
+                .lights
                 .iter()
                 .map(|l| l.clone().try_into())
-                .collect::<Result<Vec<light::Light<_, _>>,
-                    SceneDeserializeErr>>()?,
-            renders: scene.renders
+                .collect::<Result<Vec<light::Light<_, _>>, SceneDeserializeErr>>()?,
+            renders: scene
+                .renders
                 .iter()
                 .map(|r| r.into_render(&viewports))
                 .collect::<Result<Vec<camera::Render<T>>, SceneDeserializeErr>>()?,
@@ -255,10 +264,11 @@ mod tests {
     use palette::Srgba;
     use pretty_assertions::{assert_eq, assert_ne};
     use serde_yaml;
+    use std::convert::{TryFrom, TryInto};
     use vek::Vec3;
 
-    use super::{Camera, Render};
-    use crate::light::{Light, Material};
+    use super::{Camera, Light, Render};
+    use crate::light;
 
     #[test]
     fn render_deser_test() {
@@ -332,23 +342,25 @@ mod tests {
 
     #[test]
     fn light_deser_test() {
-        let light: Light<f64, Srgba> = serde_yaml::from_str(indoc!(
+        let light_unparsed: Light<f32> = serde_yaml::from_str(indoc!(
             "
             facing: [0, 0, 0]
-            specular: [1, 1, 1, 1]
-            diffuse: [1, 1, 1, 1]
-            ambient: [1, 1, 0.5, 1]
+            specular: rgba(255, 255, 255, 1)
+            diffuse: rgba(255, 255, 255, 1)
+            ambient: rgba(255, 255, 127, 1)
             "
         ))
         .unwrap();
+        let light_: light::Light<f32, Srgba> = light_unparsed.try_into().unwrap();
         assert_eq!(
-            light,
-            Light {
+            light_,
+            light::Light {
                 rot: Vec3::new(0.0, 0.0, 0.0),
-                col: Material {
+                col: light::Material {
                     specular: Srgba::new(1.0, 1.0, 1.0, 1.0),
                     diffuse: Srgba::new(1.0, 1.0, 1.0, 1.0),
-                    ambient: Srgba::new(1.0, 1.0, 0.5, 1.0),
+                    ambient: Srgba::new(1.0, 1.0, 127.0/255.0, 1.0),
+                    shininess: Srgba::default(),
                 },
             }
         );

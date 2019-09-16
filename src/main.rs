@@ -20,7 +20,7 @@ fn to_clap<T>(r: Result<T, String>) -> ClapResult {
     r.map(|_| ())
 }
 
-fn validate<T>(s: String, msg: &ToString) -> ClapResult
+fn validate<T>(s: String, msg: &dyn ToString) -> ClapResult
 where
     T: FromStr,
 {
@@ -41,16 +41,16 @@ fn validate_int_positive(s: String) -> ClapResult {
         .ok_or(msg.to_string())
 }
 
-fn validate_int_range(r: Range<i32>) -> Box<Fn(String) -> ClapResult> {
+fn validate_int_range(r: Range<i32>) -> impl Fn(String) -> ClapResult {
     let msg = format!("Must be a valid integer between {} and {}", r.start, r.end);
-    Box::new(move |s| {
+    move |s| {
         s.parse::<i32>()
             .map_err(|_| msg.to_string())
             .ok()
             .filter(|&j| r.start < j && j <= r.end)
             .map(|_| ())
             .ok_or(msg.to_string())
-    })
+    }
 }
 
 fn validate_float(s: String) -> ClapResult {
