@@ -6,14 +6,6 @@ use clap::{App, Arg};
 use chrono::format::{strftime::StrftimeItems, Item};
 use chrono::prelude::*;
 
-mod camera;
-mod distance;
-mod img;
-mod light;
-mod render;
-//mod import;
-mod serialize;
-
 type ClapResult = Result<(), String>;
 
 fn to_clap<T>(r: Result<T, String>) -> ClapResult {

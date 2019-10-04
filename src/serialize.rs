@@ -15,13 +15,29 @@ use crate::light;
 use crate::light::Material;
 use crate::render;
 
-#[derive(Debug, Clone)]
+/// Errors caused by an incorrect schema found while deserializing a scene, typically from YAML.
+#[derive(Debug, Clone, PartialEq)]
 pub enum SceneDeserializeErr {
     UnknownMaterial(String),
     UnknownCamera(String),
     ColorParseErr(String),
 }
 
+/// Wrapper around color_processing's Color::new_string which bridges it together with the palette
+/// types.
+/// ```
+/// # use pretty_assertions::{assert_eq, assert_ne};
+/// use palette::{encoding::Srgb, Alpha, rgb::Rgb};
+/// use ray_marcher::serialize::str_to_color;
+/// // Invalid color
+/// assert_eq!(None, str_to_color::<_, Srgb, u8, u8>("xyz"));
+/// // Named color
+/// assert_eq!(Some(Alpha::<Rgb<_, _>, _>::new(255, 0, 0, 255)),
+///     str_to_color::<_, Srgb, u8, u8>("red"));
+/// // rgba() color and float component type
+/// assert_eq!(Some(Alpha::<Rgb<_, _>, _>::new(1.0/255.0, 2.0/255.0, 3.0/255.0, 1.0)),
+///     str_to_color::<_, Srgb, f32, f32>("rgba(1, 2, 3, 255)"));
+/// ```
 pub fn str_to_color<S, C, T, A>(col: S) -> Option<Alpha<Rgb<C, T>, A>>
 where
     S: AsRef<str>,
@@ -29,7 +45,7 @@ where
     T: Component,
     A: Component,
 {
-    let color = Color::new_string(col)?;
+    let color = Color::new_string(col.as_ref())?;
     Some(Alpha::<Rgb<C, T>, A>::new(
         color.red.convert(),
         color.green.convert(),
@@ -38,13 +54,24 @@ where
     ))
 }
 
-pub fn str_to_color_result<C, T, A>(col: &str) -> Result<Alpha<Rgb<C, T>, A>, SceneDeserializeErr>
+/// Wrapper around str_to_color returning a Result rather than an Option.
+/// ```
+/// # use pretty_assertions::{assert_eq, assert_ne};
+/// use palette::{encoding::Srgb, Alpha, rgb::Rgb};
+/// use ray_marcher::serialize::{SceneDeserializeErr, str_to_color_result};
+/// assert_eq!(Err(SceneDeserializeErr::ColorParseErr(String::from("xyz"))),
+///     str_to_color_result::<_, Srgb, u8, u8>("xyz"));
+/// assert_eq!(Ok(Alpha::<Rgb<_, _>, _>::new(1.0/255.0, 2.0/255.0, 3.0/255.0, 1.0)),
+///     str_to_color_result::<_, Srgb, f32, f32>("rgba(1, 2, 3, 255)"));
+/// ```
+pub fn str_to_color_result<S, C, T, A>(col: S) -> Result<Alpha<Rgb<C, T>, A>, SceneDeserializeErr>
 where
+    S: AsRef<str>,
     C: RgbStandard,
     T: Component,
     A: Component,
 {
-    str_to_color(col).ok_or_else(|| SceneDeserializeErr::ColorParseErr(String::from(col)))
+    str_to_color(col.as_ref()).ok_or_else(|| SceneDeserializeErr::ColorParseErr(String::from(col.as_ref())))
 }
 
 impl<S, T, A> TryFrom<&Material<String>> for Material<Alpha<Rgb<S, T>, A>>
@@ -159,7 +186,7 @@ struct EstimatorBase<T> {
 }
 
 #[derive(Serialize, Deserialize)]
-struct Julia<T> {
+pub struct Julia<T> {
     c: Quaternion<T>,
     iterations: usize,
 

@@ -11,7 +11,7 @@ clap = "~2.33.0"
 png = "~0.15.0"
 chrono = "~0.4.9"
 palette = "~0.4.1"
-color_processing = "~0.3.1"
+color_processing = "~0.4.0"
 yaml-rust = "~0.4.3"
 serde_yaml = "~0.8.9"
 serde = { version = "~1.0.100", features = ["derive"] }
@@ -19,3 +19,11 @@ serde = { version = "~1.0.100", features = ["derive"] }
 [dev-dependencies]
 pretty_assertions = "~0.6.1"
 indoc = "~0.3.4"
+
+[lib]
+name = "ray_marcher"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ray-marcher"
+path = "src/main.rs"
